@@ -1,14 +1,24 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 
-class StoryCreate(BaseModel):
+class StoryBase(BaseModel):
     title: str
     content: str
+    source_url: Optional[str] = None
 
 
-class StoryResponse(BaseModel):
+class StoryCreate(StoryBase):
+    pass
+
+
+class StoryResponse(StoryBase):
     id: int
-    title: str
-    content: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StoryUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    source_url: Optional[str] = None
