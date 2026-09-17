@@ -1,6 +1,7 @@
 from backend.modules.stories.router import router as stories_router
-
+from backend.modules.users.router import router as users_router
 
 MODULES = [
+    users_router,
     stories_router,
 ]
