@@ -5,7 +5,6 @@ from backend.core.auth import get_current_user
 from backend.core.config import settings
 from backend.core.registry import MODULES
 
-
 app = FastAPI(
     title=settings.app_name,
     debug=settings.debug,
