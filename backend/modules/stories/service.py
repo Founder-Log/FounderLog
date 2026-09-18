@@ -28,6 +28,18 @@ class StoryService:
         self,
         data: StoryCreate
     ):
+        if not data.title.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Title cannot be empty",
+            )
+
+        if not data.content.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Content cannot be empty",
+            )
+        
         return await self.repository.create(
             title=data.title,
             content=data.content,
@@ -36,6 +48,27 @@ class StoryService:
 
     async def story_update(self, story_id: int, data: StoryUpdate):
         story = await self.get_story_by_id(story_id)
+        update_data = data.model_dump(exclude_unset=True)
+
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one field must be provided for update",
+            )
+
+        if "title" in update_data:
+            if update_data["title"] is None or not update_data["title"].strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Title cannot be empty",
+                )
+
+        if "content" in update_data:
+            if update_data["content"] is None or not update_data["content"].strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Content cannot be empty",
+                )
         return await self.repository.update(story=story, data=data)
 
 
