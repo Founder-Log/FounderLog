@@ -13,6 +13,7 @@ from backend.core.db import Base
 # модули с моделями (community и т.д.) — добавлять сюда же.
 import backend.modules.stories.models  # noqa: F401
 import backend.modules.users.models  # noqa: F401
+import backend.core.services.favorites  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

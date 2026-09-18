@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.auth import get_current_user
 from backend.core.db import get_db
+from backend.core.services.favorites import FavoritesService, TargetType
 from backend.modules.users.schemas import (
+    FavoritesListResponse,
+    FavoriteToggleRequest,
+    FavoriteToggleResponse,
     TokenResponse,
     UserLogin,
     UserRegister,
@@ -57,3 +61,41 @@ async def get_me(
     except UserNotFound:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return user
+
+
+@router.post("/api/users/me/favorites", response_model=FavoriteToggleResponse)
+async def toggle_favorite(
+    data: FavoriteToggleRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_current_user),
+):
+    """
+    Переключатель (не отдельные add/remove) — фронту не нужно знать
+    текущее состояние, просто дёргает эту ручку по клику на "звёздочку".
+    Пока target_type только "story" — валидация ниже через enum,
+    "project" появится вместе с модулем community.
+    """
+    try:
+        target_type = TargetType(data.target_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Неизвестный target_type")
+
+    service = FavoritesService(db)
+    favorited = await service.toggle(user_id, target_type, data.target_id)
+    return FavoriteToggleResponse(favorited=favorited)
+
+
+@router.get("/api/users/me/favorites", response_model=FavoritesListResponse)
+async def list_favorites(
+    target_type: str = "story",
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_current_user),
+):
+    try:
+        parsed_type = TargetType(target_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Неизвестный target_type")
+
+    service = FavoritesService(db)
+    ids = await service.list_target_ids(user_id, parsed_type)
+    return FavoritesListResponse(target_type=target_type, target_ids=ids)

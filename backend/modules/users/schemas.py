@@ -27,3 +27,17 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class FavoriteToggleRequest(BaseModel):
+    target_type: str = Field(description='Пока только "story", позже "project"')
+    target_id: int
+
+
+class FavoriteToggleResponse(BaseModel):
+    favorited: bool
+
+
+class FavoritesListResponse(BaseModel):
+    target_type: str
+    target_ids: list[int]
