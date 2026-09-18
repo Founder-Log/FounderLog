@@ -10,3 +10,4 @@ class Story(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(Text)
+    origin_url: Mapped[str] = mapped_column(String(512), nullable=True)
