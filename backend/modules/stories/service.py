@@ -14,9 +14,10 @@ class StoryService:
 
     async def get_story_by_id(
             self,
-            story_id: int
+            story_id: int,
+            only_published: bool = True
     ):
-        story = await self.repository.get_by_id(story_id)
+        story = await self.repository.get_by_id(story_id, only_published=only_published)
         if not story:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -47,7 +48,7 @@ class StoryService:
         )
 
     async def story_update(self, story_id: int, data: StoryUpdate):
-        story = await self.get_story_by_id(story_id)
+        story = await self.get_story_by_id(story_id, only_published=False)
         update_data = data.model_dump(exclude_unset=True)
 
         if not update_data:
@@ -76,5 +77,5 @@ class StoryService:
             self,
             story_id: int
     ):
-        story = await self.get_story_by_id(story_id)
+        story = await self.get_story_by_id(story_id, only_published=False)
         return await self.repository.delete(story=story)

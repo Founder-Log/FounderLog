@@ -48,16 +48,21 @@ class StoryRepository:
     async def get_all(
             self,
     ) -> Sequence[Story]:
-        query = select(Story).order_by(Story.id.desc())
+        query = select(Story).where(Story.is_published == True).order_by(Story.id.desc())
         result = await self.db.execute(query)
         return result.scalars().all()
 
 
     async def get_by_id(
             self,
-            story_id: int
+            story_id: int,
+            only_published: bool = True
     ) -> Story | None:
         query = select(Story).where(Story.id == story_id)
+    
+        if only_published:
+            query = query.where(Story.is_published == True)
+
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 

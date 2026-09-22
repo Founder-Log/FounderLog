@@ -5,7 +5,8 @@ from typing import Optional
 class StoryBase(BaseModel):
     title: str
     content: str
-    source_url: Optional[str] = None
+    origin_url: Optional[str] = None
+    is_published: bool = False
 
 
 class StoryCreate(StoryBase):
@@ -21,4 +22,5 @@ class StoryResponse(StoryBase):
 class StoryUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
-    source_url: Optional[str] = None
+    origin_url: Optional[str] = None
+    is_published: Optional[bool] = None

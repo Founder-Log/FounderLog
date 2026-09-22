@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.db import Base
@@ -11,3 +11,4 @@ class Story(Base):
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(Text)
     origin_url: Mapped[str] = mapped_column(String(512), nullable=True)
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
