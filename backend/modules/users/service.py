@@ -6,9 +6,6 @@ from backend.modules.users.models import User
 from backend.modules.users.repository import UserRepository
 from backend.modules.users.schemas import UserRegister
 
-# Раньше pwd_context лежал в core/auth.py — переехал сюда, потому что
-# пароли знает только users. core/auth.py умеет только выпускать/проверять
-# JWT и ничего не знает про то, как устроена аутентификация по паролю.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -46,16 +43,12 @@ class UserService:
     async def authenticate(self, email: str, password: str) -> str:
         user = await self.repository.get_by_email(email)
         if user is None or not pwd_context.verify(password, user.hashed_password):
-            # Одна и та же ошибка на "нет такого email" и "неверный пароль" —
-            # иначе по коду ответа можно перебором узнавать, кто зарегистрирован.
             raise InvalidCredentials()
 
-        return create_access_token(user.id)
+        return create_access_token(user.id, is_admin=user.is_admin)
 
     async def get_profile(self, user_id: int) -> User:
         user = await self.repository.get_by_id(user_id)
         if user is None:
-            # Токен валиден (подпись верна), но пользователя уже нет —
-            # ровно то, что core/auth.get_current_user() сознательно не проверяет.
             raise UserNotFound(user_id)
         return user
