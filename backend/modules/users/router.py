@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.auth import get_current_user
 from backend.core.db import get_db
-from backend.core.services.favorites import FavoritesService, TargetType
+from backend.core.target_type import TargetType
+from backend.modules.interactions.service import FavoritesService
 from backend.modules.users.schemas import (
     FavoritesListResponse,
     FavoriteToggleRequest,

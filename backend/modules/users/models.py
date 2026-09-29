@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, String, func, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.db import Base
@@ -10,6 +10,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     handle: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
