@@ -2,8 +2,8 @@ from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.stories.models import Story
-from backend.modules.stories.schemas import StoryUpdate
+from backend.modules.stories.models import Story, Category, Tag
+from backend.modules.stories.schemas import StoryUpdate, CategoryCreate, TagCreate
 
 
 class StoryRepository:
@@ -73,3 +73,53 @@ class StoryRepository:
     ) -> None:
         await self.db.delete(story)
         await self.db.commit()
+
+
+class CategoryRepository:
+    def __init__(self, db: AsyncSession):
+            self.db = db
+
+    async def get_category_by_slug(self, slug: str) -> Category | None:
+        query = select(Category).where(Category.slug == slug)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def get_all_categories(self) -> Sequence[Category]:
+        query = select(Category).order_by(Category.id.desc())
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
+    async def create_category(self, category_in: CategoryCreate) -> Category:
+        category = Category(**category_in.model_dump())
+
+        self.db.add(category)
+        await self.db.commit()
+        await self.db.refresh(category)
+        
+        return category
+
+
+class TagRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_tag_by_slug(self, slug: str) -> Tag | None:
+        query = select(Tag).where(Tag.slug == slug)
+        result = await self.db.execute(query)
+
+        return result.scalar_one_or_none()
+
+    async def get_all_tags(self) -> Sequence[Tag]:
+        query = select(Tag).order_by(Tag.id.desc())
+        result = await self.db.execute(query)
+
+        return result.scalars().all()
+
+    async def create_tag(self, tag_in: TagCreate) -> Tag:
+        tag = Tag(**tag_in.model_dump())
+
+        self.db.add(tag)
+        await self.db.commit()
+        await self.db.refresh(tag)
+
+        return tag
