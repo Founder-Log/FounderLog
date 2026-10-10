@@ -82,8 +82,8 @@ class StoryService:
 
 
 class CategoryService:
-    def __init__(self, repository: CategoryRepository):
-            self.repository = repository
+    def __init__(self, db: AsyncSession):
+            self.repository = CategoryRepository(db)
 
     async def get_all_categories(self):
         return await self.repository.get_all_categories()
@@ -145,8 +145,8 @@ class CategoryService:
 
 
 class TagService:
-    def __init__(self, repository: TagRepository):
-        self.repository = repository
+    def __init__(self, db: AsyncSession):
+        self.repository = TagRepository(db)
 
     async def get_all_tags(self):
         return await self.repository.get_all_tags()
