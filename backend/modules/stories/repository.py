@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.stories.models import Story, Category, Tag
-from backend.modules.stories.schemas import StoryUpdate, CategoryCreate, TagCreate
+from backend.modules.stories.schemas import StoryUpdate, CategoryCreate, CategoryUpdate, TagCreate, TagUpdate
 
 
 class StoryRepository:
@@ -84,6 +84,11 @@ class CategoryRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_category_by_id(self, category_id: int) -> Category | None:
+        query = select(Category).where(Category.id == category_id)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
     async def get_all_categories(self) -> Sequence[Category]:
         query = select(Category).order_by(Category.id.desc())
         result = await self.db.execute(query)
@@ -98,8 +103,22 @@ class CategoryRepository:
         
         return category
 
+    async def category_update(self, category: Category, data: CategoryUpdate) -> Category:
+        update_data = data.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+                    setattr(category, field, value)
+
+        await self.db.commit()
+        await self.db.refresh(category)
+        return category
+
+    async def category_delete(self, category: Category) -> None:
+        await self.db.delete(category)
+        await self.db.commit()
 
 class TagRepository:
+
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -107,6 +126,11 @@ class TagRepository:
         query = select(Tag).where(Tag.slug == slug)
         result = await self.db.execute(query)
 
+        return result.scalar_one_or_none()
+
+    async def get_tag_by_id(self, tag_id: int) -> Tag | None:
+        query = select(Tag).where(Tag.id == tag_id)
+        result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
     async def get_all_tags(self) -> Sequence[Tag]:
@@ -123,3 +147,17 @@ class TagRepository:
         await self.db.refresh(tag)
 
         return tag
+
+    async def tag_update(self, tag: Tag, data: TagUpdate) -> Tag:
+        update_data = data.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+                    setattr(tag, field, value)
+
+        await self.db.commit()
+        await self.db.refresh(tag)
+        return tag 
+
+    async def tag_delete(self, tag: Tag) -> None:
+        await self.db.delete(tag)
+        await self.db.commit()

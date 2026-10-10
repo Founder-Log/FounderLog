@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
-from backend.modules.stories.repository import StoryRepository
-from backend.modules.stories.schemas import StoryCreate, StoryUpdate
+from backend.modules.stories.repository import StoryRepository, CategoryRepository, TagRepository
+from backend.modules.stories.schemas import StoryCreate, StoryUpdate, CategoryCreate, CategoryUpdate, TagCreate, TagUpdate
 
 
 class StoryService:
@@ -23,6 +23,7 @@ class StoryService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="The story is not found",
             )
+        
         return story
 
     async def create_story(
@@ -72,10 +73,137 @@ class StoryService:
                 )
         return await self.repository.update(story=story, data=data)
 
-
     async def delete_story(
             self,
             story_id: int
     ):
         story = await self.get_story_by_id(story_id, only_published=False)
         return await self.repository.delete(story=story)
+
+
+class CategoryService:
+    def __init__(self, repository: CategoryRepository):
+            self.repository = repository
+
+    async def get_all_categories(self):
+        return await self.repository.get_all_categories()
+
+    async def get_category_by_slug(self, slug:str):
+        category = await self.repository.get_category_by_slug(slug)
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The category is not found",
+            )
+
+        return category
+
+    async def get_category_by_id(self, category_id: int):
+        category = await self.repository.get_category_by_id(category_id)
+
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The category is not found",
+            )
+
+        return category
+
+    async def create_category(self, data: CategoryCreate):
+        category = await self.repository.get_category_by_slug(data.slug)
+        if category:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category with this slug already exists",
+            )
+
+        return await self.repository.create_category(data)
+
+    async def category_update(self, category_id: int, data: CategoryUpdate):
+        category = await self.repository.get_category_by_id(category_id)
+
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one field must be provided for update"
+            )
+
+        if data.slug and data.slug != category.slug:
+            existing_tag = await self.repository.get_tag_by_slug(data.slug)
+            if existing_tag:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Tag with this slug already exists",
+                )
+
+        return await self.repository.category_update(category, data)
+
+    async def category_delete(self, category_id: int):
+        category = await self.repository.get_category_by_id(category_id)
+        return await self.repository.category_delete(category=category)
+
+
+class TagService:
+    def __init__(self, repository: TagRepository):
+        self.repository = repository
+
+    async def get_all_tags(self):
+        return await self.repository.get_all_tags()
+
+    async def get_tag_by_slug(self, slug: str):
+        tag = await self.repository.get_tag_by_slug(slug)
+
+        if not tag:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The tag is not found",
+            )
+
+        return tag
+
+    async def get_tag_by_id(self, tag_id: int):
+        tag = await self.repository.get_tag_by_id(tag_id)
+
+        if not tag:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The tag is not found",
+            )
+
+        return tag
+
+    async def create_tag(self, data: TagCreate):
+        tag = await self.repository.get_tag_by_slug(data.slug)
+
+        if tag:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tag with this slug already exists"
+            )
+
+        return await self.repository.create_tag(data)
+
+    async def tag_update(self, tag_id, data: TagUpdate):
+        tag = await self.get_tag_by_id(tag_id)
+
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one field must be provided for update",
+            )
+
+        if data.slug and data.slug != tag.slug:
+            existing_tag = await self.repository.get_tag_by_slug(data.slug)
+            if existing_tag:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Tag with this slug already exists",
+                )
+
+        return await self.repository.tag_update(tag, data)
+
+    async def tag_delete(self, tag_id: int):
+        tag = await self.get_tag_by_id(tag_id)
+        return await self.repository.tag_delete(tag=tag)
