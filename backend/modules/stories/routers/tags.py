@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.modules.users.models import User
 from backend.core.db import get_db
 from backend.core.auth import get_current_user
 from backend.modules.stories.schemas import TagCreate, TagResponse, TagUpdate
-from backend.modules.stories.service import TagService
+from backend.modules.stories.services.tags import TagService
 
 
 router = APIRouter(
@@ -62,11 +63,11 @@ async def get_tag_by_slug(
 async def create_tag(
     data: TagCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     service = TagService(db)
 
-    return await service.create_tag(data=data)
+    return await service.create_tag(data=data, current_user=current_user)
 
 
 @router.patch(
@@ -78,11 +79,11 @@ async def tag_update(
     tag_id: int,
     data: TagUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     service = TagService(db)
 
-    return await service.tag_update(tag_id=tag_id, data=data)
+    return await service.tag_update(tag_id=tag_id, data=data, current_user=current_user)
 
 
 @router.delete(
@@ -93,9 +94,9 @@ async def tag_update(
 async def tag_delete(
     tag_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     service = TagService(db)
 
-    await service.tag_delete(tag_id=tag_id)
+    await service.tag_delete(tag_id=tag_id, current_user=current_user)
     return None

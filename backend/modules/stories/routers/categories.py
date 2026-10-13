@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.db import get_db
+from backend.modules.users.models import User
 from backend.core.auth import get_current_user
 from backend.modules.stories.schemas import CategoryCreate, CategoryResponse, CategoryUpdate
-from backend.modules.stories.service import CategoryService
+from backend.modules.stories.services.categories import CategoryService
 
 
 router = APIRouter(
@@ -62,11 +63,11 @@ async def get_category_by_slug(
 async def create_category(
     data: CategoryCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     service = CategoryService(db)
 
-    return await service.create_category(data)
+    return await service.create_category(data=data, current_user=current_user)
 
 
 @router.patch(
@@ -78,11 +79,11 @@ async def category_update(
     category_id: int,
     data: CategoryUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     service = CategoryService(db)
 
-    return await service.category_update(category_id=category_id, data=data)
+    return await service.category_update(category_id=category_id, data=data, current_user=current_user)
 
 
 @router.delete(
@@ -93,9 +94,10 @@ async def category_update(
 async def category_delete(
         category_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user: dict = Depends(get_current_user)
+        current_user: User = Depends(get_current_user)
 ):
     service = CategoryService(db)
 
-    await service.category_delete(category_id)
+    await service.category_delete(category_id=category_id, current_user=category_id)
+    
     return None
