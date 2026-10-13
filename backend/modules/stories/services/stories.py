@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
+from backend.modules.users.models import User
 from backend.modules.stories.repository import StoryRepository
 from backend.modules.stories.schemas import StoryCreate, StoryUpdate
 
@@ -14,20 +15,29 @@ class StoryService:
 
     async def get_story_by_id(
             self,
-            story_id: int
+            story_id: int,
+            only_published: bool = True
     ):
-        story = await self.repository.get_by_id(story_id)
+        story = await self.repository.get_by_id(story_id, only_published=only_published)
         if not story:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="The story is not found",
             )
+        
         return story
 
     async def create_story(
         self,
-        data: StoryCreate
+        data: StoryCreate,
+        current_user: User
     ):
+        if not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only administrators can create this story",
+            )
+        
         if not data.title.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -46,8 +56,15 @@ class StoryService:
             origin_url=data.origin_url,
         )
 
-    async def story_update(self, story_id: int, data: StoryUpdate):
-        story = await self.get_story_by_id(story_id)
+    async def story_update(self, story_id: int, data: StoryUpdate, current_user: User):
+        
+        if not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only administrators can update this story",
+            
+            )
+        story = await self.get_story_by_id(story_id, only_published=False)
         update_data = data.model_dump(exclude_unset=True)
 
         if not update_data:
@@ -71,10 +88,16 @@ class StoryService:
                 )
         return await self.repository.update(story=story, data=data)
 
-
     async def delete_story(
             self,
-            story_id: int
+            story_id: int,
+            current_user: User
     ):
-        story = await self.get_story_by_id(story_id)
+        if not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only administrators can delete this story",
+            )
+        
+        story = await self.get_story_by_id(story_id, only_published=False)
         return await self.repository.delete(story=story)

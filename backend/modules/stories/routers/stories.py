@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.db import get_db
+from backend.modules.users.models import User
 from backend.core.auth import get_current_user
 from backend.modules.stories.schemas import StoryCreate, StoryResponse, StoryUpdate
-from backend.modules.stories.service import StoryService
+from backend.modules.stories.services.stories import StoryService
 
 
 router = APIRouter(
@@ -47,11 +48,11 @@ async def get_story(
 async def create_story(
     data: StoryCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     service = StoryService(db)
 
-    return await service.create_story(data)
+    return await service.create_story(data=data, current_user=current_user)
 
 
 @router.patch(
@@ -63,11 +64,11 @@ async def story_update(
     story_id: int,
     data: StoryUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     service = StoryService(db)
 
-    return await service.story_update(story_id=story_id, data=data)
+    return await service.story_update(story_id=story_id, data=data, current_user=current_user)
 
 
 @router.delete(
@@ -77,8 +78,8 @@ async def story_update(
 async def story_delete(
     story_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     service = StoryService(db)
-    await service.delete_story(story_id)
+    await service.delete_story(story_id=story_id, current_user=current_user)
     return None
