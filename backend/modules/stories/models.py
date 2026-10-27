@@ -35,7 +35,6 @@ class Category(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    slug: Mapped[str] = mapped_column(String, unique=True, index=True)
 
     stories: Mapped[list["Story"]] = relationship(back_populates="category")
 
@@ -45,6 +44,5 @@ class Tag(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    slug: Mapped[str] = mapped_column(String, unique=True, index=True)
 
     stories: Mapped[list["Story"]] = relationship(secondary=story_tags, back_populates="tags")   

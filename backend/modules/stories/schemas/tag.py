@@ -5,9 +5,8 @@ from typing import Optional
 
 class TagBase(BaseModel):
     name: str = Field(..., min_length=1)
-    slug: str = Field(..., min_length=1)
         
-    @field_validator("name", "slug")
+    @field_validator("name")
     @classmethod
     def prevent_empty_spaces(cls, v: str) -> str:
         if not v.strip():
@@ -21,9 +20,8 @@ class TagCreate(TagBase):
 
 class TagUpdate(BaseModel):
     name: str | None=None
-    slug: str | None=None
     
-    @field_validator("name", "slug")
+    @field_validator("name")
     @classmethod
     def prevent_empty_spaces(cls, v: str) -> str:
         if v is None:

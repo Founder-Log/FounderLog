@@ -11,8 +11,8 @@ class TagRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_tag_by_slug(self, slug: str) -> Tag | None:
-        query = select(Tag).where(Tag.slug == slug)
+    async def get_tag_by_name(self, name: str) -> Tag | None:
+        query = select(Tag).where(Tag.name == name)
         result = await self.db.execute(query)
 
         return result.scalar_one_or_none()
@@ -41,7 +41,7 @@ class TagRepository:
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
-                    setattr(tag, field, value)
+            setattr(tag, field, value)
 
         await self.db.commit()
         await self.db.refresh(tag)

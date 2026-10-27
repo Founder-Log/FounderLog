@@ -10,8 +10,8 @@ class CategoryRepository:
     def __init__(self, db: AsyncSession):
             self.db = db
 
-    async def get_category_by_slug(self, slug: str) -> Category | None:
-        query = select(Category).where(Category.slug == slug)
+    async def get_category_by_name(self, name: str) -> Category | None:
+        query = select(Category).where(Category.name == name)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
@@ -38,7 +38,7 @@ class CategoryRepository:
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
-                    setattr(category, field, value)
+            setattr(category, field, value)
 
         await self.db.commit()
         await self.db.refresh(category)

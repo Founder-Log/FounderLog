@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from backend.modules.users.models import User
-from backend.modules.stories.repository import  TagRepository
+from backend.modules.stories.repositories.tag_repository import TagRepository
 from backend.modules.stories.schemas import TagCreate, TagUpdate
 
 
@@ -15,8 +15,8 @@ class TagService:
         return await self.repository.get_all_tags()
     
 
-    async def get_tag_by_slug(self, slug: str):
-        tag = await self.repository.get_tag_by_slug(slug)
+    async def get_tag_by_name(self, name: str):
+        tag = await self.repository.get_tag_by_name(name)
 
         if not tag:
             raise HTTPException(
@@ -47,18 +47,18 @@ class TagService:
                 detail="Only administrators can create this tag"
             )
         
-        tag = await self.repository.get_tag_by_slug(data.slug)
+        tag = await self.repository.get_tag_by_name(data.name)
 
         if tag:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Tag with this slug already exists"
+                detail="Tag with this title already exists"
             )
 
         return await self.repository.create_tag(data)
     
 
-    async def tag_update(self, tag_id, data: TagUpdate, current_user: User):
+    async def tag_update(self, tag_id: int, data: TagUpdate, current_user: User):
 
         if not current_user.is_admin:
             raise HTTPException(
@@ -75,12 +75,12 @@ class TagService:
                 detail="At least one field must be provided for update",
             )
 
-        if data.slug and data.slug != tag.slug:
-            existing_tag = await self.repository.get_tag_by_slug(data.slug)
+        if data.name and data.name != tag.name:
+            existing_tag = await self.repository.get_tag_by_name(data.name)
             if existing_tag:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Tag with this slug already exists",
+                    detail="Tag with this title already exists",
                 )
 
         return await self.repository.tag_update(tag, data)
@@ -96,4 +96,4 @@ class TagService:
         
         tag = await self.get_tag_by_id(tag_id)
 
-        return await self.repository.tag_delete(tag=tag)
+        return await self.repository.tag_delete(tag)
